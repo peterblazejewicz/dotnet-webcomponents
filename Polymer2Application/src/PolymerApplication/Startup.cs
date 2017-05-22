@@ -38,6 +38,20 @@ namespace PolymerApplication
             }
             app.UseDefaultFiles();
             app.UseStaticFiles();
+            app.MapWhen(context =>
+            {
+                var path = context.Request.Path.Value;
+                if (path.Contains("/api/")) return false;
+                return (!path.Contains("."));
+            }, aBranch =>
+            {
+                aBranch.Use((context, next) =>
+                {
+                    context.Request.Path = new PathString("/index.html");
+                    return next();
+                });
+                aBranch.UseStaticFiles();
+            });
             // allow CORS during development
             if (env.IsDevelopment())
             {
@@ -47,7 +61,7 @@ namespace PolymerApplication
                 .AllowAnyHeader()
                 .AllowCredentials());
             }
-            Console.WriteLine($"webroot: {env.WebRootPath}");
+            app.UseMvc();
         }
     }
 }
